@@ -17,6 +17,9 @@ class App extends Component {
       theaterID: '',
       movieSelected: false,
       movieID: '',
+      movieName: '',
+      movieImage: '',
+      movieRunTime: '',
       data: []
     };
   }
@@ -82,8 +85,14 @@ class App extends Component {
   }
 
   handleClickedMovie(i) {
+
+    console.log('SUPER TEST' + i.runTime)
+
     this.setState({ 
-      movieID: i,
+      movieID: i.id,
+      movieName: i.name,
+      movieImage: i.image,
+      movieRunTime: i.runTime,
       movieSelected: true
     });
 
@@ -105,7 +114,7 @@ class App extends Component {
       app = <MoviesList data={this.state.data} selectedTheater={this.state.theaterID} onClick={(i) => this.handleClickedMovie(i)} />
     }
     else {
-      app = <MatchList data={this.state.data} selectedTheater={this.state.theaterID} selectedMovie={this.state.movieID} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} />
+      app = <MatchList data={this.state.data} selectedTheater={this.state.theaterID} selectedMovie={this.state.movieID} selectedMovieName={this.state.movieName} selectedMovieImage={this.state.movieImage} selectedMovieRunTime={this.state.movieRunTime} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} />
     }
 
     return (
@@ -201,7 +210,7 @@ class MoviesList extends Component {
 
       var filmTimes = [];
 
-      // Only grab Feature Films
+      // Only grab feature films (because others are missing required data)
       if (movie.subType === `Feature Film`) {
         // Loop through all the showtimes for each film
         movie.showtimes.map((showtime, index) => {
@@ -211,8 +220,10 @@ class MoviesList extends Component {
 
             if (films.indexOf(movie.title) === -1) {       
               films.push(movie.title);
+
+              var runTime = convertRunTimeToMins(movie.runTime);
               
-              var filmObj = {id: movie.rootId, name: movie.title, preferredImage: movie.preferredImage.uri, genres: movie.genres}
+              var filmObj = {id: movie.rootId, name: movie.title, image: movie.preferredImage.uri, runTime: runTime, genres: movie.genres}
               filmObjs.push(filmObj);  
             }
           }
@@ -221,13 +232,13 @@ class MoviesList extends Component {
 
     });
 
+    console.log('Outputing films')
     console.log(filmObjs);
-
 
     return (
       <ul>
         {filmObjs.map((movie, index) => 
-            <MovieListItem movieName={movie.name} movieID={movie.id} key={movie.id + movie.name} onClick={(i) => this.props.onClick(i)} />
+          <MovieListItem movieName={movie.name} movieImage={movie.image} movieRunTime={movie.runTime} movieID={movie.id} key={movie.id + movie.name} onClick={(i) => this.props.onClick(i)} />
         )}
       </ul>
     );
@@ -235,9 +246,14 @@ class MoviesList extends Component {
 }
 
   class MovieListItem extends Component {
+
     render () {
+      
+      
+      var movieObj = {id: this.props.movieID, name: this.props.movieName, image: this.props.movieImage, runTime: this.props.movieRunTime};
+
       return (
-        <li onClick={(i) => this.props.onClick(this.props.movieID)}>{this.props.movieName}</li>
+        <li onClick={(i) => this.props.onClick(movieObj)}>{this.props.movieName}</li>
       );
     }
   }
@@ -249,15 +265,16 @@ class MatchList extends Component {
 
     var matches = [];
     var selectedMoviesTimes = [];
-    var runTimeMins;
+    var firstMovieRunTimeMins;
 
     // Loop through each movie to find selected 
     this.props.data.map((movie, index) => {
       if (movie.rootId === this.props.selectedMovie) {
         console.log('Selected movie found.');
 
-        runTimeMins = convertRunTimeToMins(movie.runTime);
-        console.log(runTimeMins);
+        firstMovieRunTimeMins = convertRunTimeToMins(movie.runTime);
+
+        console.log(firstMovieRunTimeMins);
 
         // Pull showtimes
         movie.showtimes.map((showtime, index) => {
@@ -276,46 +293,54 @@ class MatchList extends Component {
       
     // Loop through each movie to find matches 
     this.props.data.map((secondMovie, index) => {
-      if (secondMovie.rootId !== this.props.selectedMovie) {
-        // Pull showtimes
-        secondMovie.showtimes.map((showtime, index) => {
-          // Only at select theater
-          if (showtime.theatre.id === this.props.selectedTheater) {
+      // Only grab feature films (because others are missing required data)
+      if (secondMovie.subType === `Feature Film`) {
+        if (secondMovie.rootId !== this.props.selectedMovie) {
+          var secondMovieRunTimeMins = convertRunTimeToMins(secondMovie.runTime);
+          
+          // Pull showtimes
+          secondMovie.showtimes.map((showtime, index) => {
+            // Only at select theater
+            if (showtime.theatre.id === this.props.selectedTheater) {
 
-            // Check if it's a match by comparing every 
-            selectedMoviesTimes.map((selectMovieTime, index) => {
-              var firstMovieTime = convertTimeToMinutes(selectMovieTime);
-              var secondMovieTime = convertTimeToMinutes(showtime.dateTime);
+              // Check if it's a match by comparing every 
+              selectedMoviesTimes.map((selectMovieTime, index) => {
+                var firstMovieTime = convertTimeToMinutes(selectMovieTime);
+                var secondMovieTime = convertTimeToMinutes(showtime.dateTime);
 
-              var afterStartWindow = firstMovieTime + runTimeMins + this.props.timeBufferMin;
-              var afterEndWindow = firstMovieTime + runTimeMins + this.props.timeBufferMax;
-              var beforeStartWindow = secondMovieTime + runTimeMins + this.props.timeBufferMin;
-              var beforeEndWindow = secondMovieTime + runTimeMins + this.props.timeBufferMax;
-              
-              // Check if possible second movie is after selected movie
-              if ( secondMovieTime >= afterStartWindow && secondMovieTime <= afterEndWindow ) {
-                console.log('Match found');
+                
 
-                // Save match
-                var matchObj = { firstMovieID: this.props.selectedMovie, secondMovieID: secondMovie.rootId };
-                matches.push(matchObj);
-              }
-              else if ( firstMovieTime >= beforeStartWindow && firstMovieTime <= beforeEndWindow ) {
-                console.log('Match found');
+                var afterStartWindow = firstMovieTime + firstMovieRunTimeMins + this.props.timeBufferMin;
+                var afterEndWindow = firstMovieTime + firstMovieRunTimeMins + this.props.timeBufferMax;
+                var beforeStartWindow = secondMovieTime + secondMovieRunTimeMins + this.props.timeBufferMin;
+                var beforeEndWindow = secondMovieTime + secondMovieRunTimeMins + this.props.timeBufferMax;
+                
+                // Check if possible second movie is after selected movie
+                if ( secondMovieTime >= afterStartWindow && secondMovieTime <= afterEndWindow ) {
+                  console.log('Match found');
 
-                // Save match
-                var matchObj = { firstMovieID: secondMovie.rootId, secondMovieID: this.props.selectedMovie };
-                matches.push(matchObj);
-              }
-              else {
-                // Not a match
-              }
+                  // Save match
+                  var matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieImage: this.props.selectedMovieImage, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieImage: secondMovie.preferredImage.uri, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
+                  matches.push(matchObj);
+                }
+                else if ( firstMovieTime >= beforeStartWindow && firstMovieTime <= beforeEndWindow ) {
+                  console.log('Match found');
 
-            });
-          }
-        });
+                  console.log('Selected film runtime = ' + this.props.selectedMovieRunTime);
+                  
+                  // Save match
+                  var matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieImage: secondMovie.preferredImage.uri, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieImage: this.props.selectedMovieImage, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
+                  matches.push(matchObj);
+                }
+                else {
+                  // Not a match
+                }
+
+              });
+            }
+          });
+        }
       }
-
     });
 
     console.log(matches);
@@ -323,7 +348,7 @@ class MatchList extends Component {
     return (
       <div>
         {matches.map((match, index) => 
-            <MatchCard firstMovieID={match.firstMovieID} secondMovieID={match.secondMovieID} data={this.props.data}  />
+            <MatchCard firstMovieID={match.firstMovieID} firstMovieName={match.firstMovieName} firstMovieImage={match.firstMovieImage} firstMovieTime={match.firstMovieTime} firstMovieRunTime={match.firstMovieRunTime} secondMovieID={match.secondMovieID} secondMovieName={match.secondMovieName} secondMovieImage={match.secondMovieImage} secondMovieTime={match.secondMovieTime} secondMovieRunTime={match.secondMovieRunTime} data={this.props.data}  />
         )}
       </div>
     );
@@ -332,9 +357,13 @@ class MatchList extends Component {
 
   class MatchCard extends Component {
     render () {
+
+      var firstMovieTime = convertTimeToHuman(this.props.firstMovieTime);
+      var secondMovieTime = convertTimeToHuman(this.props.secondMovieTime);
+
       return (
         <div>
-          <p>{this.props.firstMovieID} + {this.props.secondMovieID}</p>
+          <p>{this.props.firstMovieName} @ {firstMovieTime} ({this.props.firstMovieRunTime}) + {this.props.secondMovieName} at {secondMovieTime} ({this.props.secondMovieRunTime})</p>
         </div>
       );
     }
@@ -384,4 +413,40 @@ function convertTimeToMinutes(dateTime) {
   m = h + m;
 
   return m; 
+}
+
+
+function convertTimeToHuman(dateTime) {
+  var time = dateTime.split('T');
+  time = from24to12(time[1]);
+
+  return time;
+}
+
+function from24to12(time) {
+  
+  console.log('Convertin time' + time);
+  
+  // Split by :
+  var time = time.split(':');
+  var h = time[0];
+  var m = time[1];
+
+  var newTime;
+
+  if (h > 12) {
+      h = h - 12;
+      newTime = h + ':' + m + 'pm';
+  }
+  else if (h == '0' || h == '00') {
+      newTime = '12:' + m + 'am';
+  }
+  else if (h == '12') {
+      newTime = h + ':' + m + 'pm';
+  }
+  else {
+      newTime = h + ':' + m + 'am';
+  }
+
+  return newTime;
 }
