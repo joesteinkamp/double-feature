@@ -48,8 +48,8 @@ class App extends Component {
   handleClickGrabData() {
     //console.log('Grabbing data');
 
-    // API Call
-    var requestURI = 'http://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&api_key=' + this.state.APIKey;
+    // API Call (GraceNote Developer - OnConnect)
+    var requestURI = 'http://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + this.state.APIKey;
   
     fetch(requestURI)
       .then(response=>response.json())
