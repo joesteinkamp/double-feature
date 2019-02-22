@@ -9,7 +9,7 @@ class App extends Component {
     this.state = {
       APIKey: 'y9q8wtsznhu4zf9u9e294xtm',
       dataLoaded: false,
-      showTimeDate: '',
+      showTimeDate: '2019-02-01',
       zipCode: '60601',
       timeBufferMin: 5,
       timeBufferMax: 30,
@@ -41,19 +41,15 @@ class App extends Component {
 
     this.setState({showTimeDate: today});
 
-
     // Get current zip code of user
 
   }
 
   handleClickGrabData() {
-
-    console.log('Grabbing data');
+    //console.log('Grabbing data');
 
     // API Call
     var requestURI = 'http://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&api_key=' + this.state.APIKey;
-    
-    console.log(requestURI);
   
     fetch(requestURI)
       .then(response=>response.json())
@@ -67,12 +63,34 @@ class App extends Component {
   }
 
   handleChangeDate(i) {
-
-    console.log('Change date');
+    //console.log('Change date');
     this.setState({
       showTimeDate: i.target.value
     });
     
+  }
+
+  handleChangeZIP(i) {
+    //console.log('Change ZIP');
+    this.setState({
+      zipCode: i.target.value
+    });
+  }
+
+  handleChangeTimeBufferMin(i) {
+    //console.log('Change Time Buffer Minimum');
+    var timeBufferMin = parseInt(i.target.value);
+    this.setState({
+      timeBufferMin: timeBufferMin
+    });
+  }
+
+  handleChangeTimeBufferMax(i) {
+    //console.log('Change Time Buffer Maximum');
+    var timeBufferMax = parseInt(i.target.value);
+    this.setState({
+      timeBufferMax: timeBufferMax
+    });
   }
 
   handleClickedTheater(i) {
@@ -85,9 +103,6 @@ class App extends Component {
   }
 
   handleClickedMovie(i) {
-
-    console.log('SUPER TEST' + i.runTime)
-
     this.setState({ 
       movieID: i.id,
       movieName: i.name,
@@ -105,7 +120,7 @@ class App extends Component {
     var app;
 
     if (this.state.dataLoaded === false) {
-      app = <LocationForm showTimeDate={this.state.showTimeDate} zipCode={this.state.zipCode} onClick={() => this.handleClickGrabData()} onChange={(i) => this.handleChangeDate(i)} />
+      app = <LocationForm showTimeDate={this.state.showTimeDate} zipCode={this.state.zipCode} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} onClick={() => this.handleClickGrabData()} onChangeDate={(i) => this.handleChangeDate(i)} onChangeZIP={(i) => this.handleChangeZIP(i)} onChangeTimeBufferMin={(i) => this.handleChangeTimeBufferMin(i)} onChangeTimeBufferMax={(i) => this.handleChangeTimeBufferMax(i)} />
     }
     else if (this.state.theaterSelected === false ) {
       app = <TheaterList data={this.state.data} onClick={(i) => this.handleClickedTheater(i)} />
@@ -133,16 +148,16 @@ class LocationForm extends Component {
     return (
       <div className="LocationForm">
         <label htmlFor="showTimeDate">Date: 
-        <input id="showTimeDate" type="date" value={this.props.showTimeDate} onChange={(i) => this.props.onChange(i)}></input>
+        <input id="showTimeDate" type="date" value={this.props.showTimeDate} onChange={(i) => this.props.onChangeDate(i)}></input>
         </label>
         <label htmlFor="zipCode">ZIP
-            <input id="zipCode" type="text" pattern="\d*" value={this.props.zipCode}></input>
+            <input id="zipCode" type="text" pattern="\d*" value={this.props.zipCode} onChange={(i) => this.props.onChangeZIP(i)}></input>
         </label>
         <label htmlFor="timeWindowBuffer">Time Window Buffer
-            <input id="timeWindowBuffer" type="number" value="5"></input>
+            <input id="timeWindowBuffer" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
         </label>
         <label htmlFor="timeWindowRange">Time Window Range
-            <input id="timeWindowRange" type="number" value="30"></input>
+            <input id="timeWindowRange" type="number" value={this.props.timeBufferMax} onChange={(i) => this.props.onChangeTimeBufferMax(i)}></input>
         </label>
         <button className="" onClick={() => this.props.onClick()}>Find Nearby Movies</button>
       </div>
@@ -232,8 +247,12 @@ class MoviesList extends Component {
 
     });
 
-    console.log('Outputing films')
-    console.log(filmObjs);
+    //console.log('Outputing parsed individual films');
+
+    filmObjs.sort((a,b) => (a.name.toUpperCase() < b.name.toUpperCase()) ? -1 : (a.name.toUpperCase() > b.name.toUpperCase()) ? 1 : 0  );
+
+ 
+
 
     return (
       <ul>
@@ -262,6 +281,7 @@ class MatchList extends Component {
   render () {
 
     console.log('Looking for this movie (' + this.props.selectedMovie + ') at this theater (' + this.props.selectedTheater + ')');
+    console.log(this.props.timeBufferMin + ' - ' + this.props.timeBufferMax);
 
     var matches = [];
     var selectedMoviesTimes = [];
@@ -269,18 +289,17 @@ class MatchList extends Component {
 
     // Loop through each movie to find selected 
     this.props.data.map((movie, index) => {
-      if (movie.rootId === this.props.selectedMovie) {
-        console.log('Selected movie found.');
+      // Must search for name too because 3D movies get pulled in (WHICH IS FINE BUT NEED TO FIX OUTPUT TO IDENTIFY AS SUCH - NOT IMPLEMENTED YET)
+      if (movie.rootId === this.props.selectedMovie && movie.title === this.props.selectedMovieName) {
+        //console.log('Selected movie found.');
 
         firstMovieRunTimeMins = convertRunTimeToMins(movie.runTime);
 
-        console.log(firstMovieRunTimeMins);
-
         // Pull showtimes
         movie.showtimes.map((showtime, index) => {
-          // Only at select theater
+          // Only at selected theater
           if (showtime.theatre.id === this.props.selectedTheater) {
-            console.log('Showtime at selected theater found.')
+            //console.log('Showtime at selected theater found.')
 
             selectedMoviesTimes.push(showtime.dateTime);
           }
@@ -307,7 +326,6 @@ class MatchList extends Component {
               selectedMoviesTimes.map((selectMovieTime, index) => {
                 var firstMovieTime = convertTimeToMinutes(selectMovieTime);
                 var secondMovieTime = convertTimeToMinutes(showtime.dateTime);
-
                 
 
                 var afterStartWindow = firstMovieTime + firstMovieRunTimeMins + this.props.timeBufferMin;
@@ -315,18 +333,19 @@ class MatchList extends Component {
                 var beforeStartWindow = secondMovieTime + secondMovieRunTimeMins + this.props.timeBufferMin;
                 var beforeEndWindow = secondMovieTime + secondMovieRunTimeMins + this.props.timeBufferMax;
                 
+                console.log(afterStartWindow + ' - ' + afterEndWindow);
+                console.log(beforeStartWindow + ' - ' + beforeEndWindow);
+
                 // Check if possible second movie is after selected movie
                 if ( secondMovieTime >= afterStartWindow && secondMovieTime <= afterEndWindow ) {
-                  console.log('Match found');
+                  //console.log('Match found');
 
                   // Save match
                   var matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieImage: this.props.selectedMovieImage, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieImage: secondMovie.preferredImage.uri, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
                   matches.push(matchObj);
                 }
                 else if ( firstMovieTime >= beforeStartWindow && firstMovieTime <= beforeEndWindow ) {
-                  console.log('Match found');
-
-                  console.log('Selected film runtime = ' + this.props.selectedMovieRunTime);
+                  //console.log('Match found');
                   
                   // Save match
                   var matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieImage: secondMovie.preferredImage.uri, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieImage: this.props.selectedMovieImage, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
@@ -343,6 +362,7 @@ class MatchList extends Component {
       }
     });
 
+    matches.sort((a, b) => convertTimeToMinutes(a.firstMovieTime) - convertTimeToMinutes(b.firstMovieTime));
     console.log(matches);
 
     return (
@@ -424,11 +444,10 @@ function convertTimeToHuman(dateTime) {
 }
 
 function from24to12(time) {
-  
-  console.log('Convertin time' + time);
+  //console.log('Converting time' + time);
   
   // Split by :
-  var time = time.split(':');
+  time = time.split(':');
   var h = time[0];
   var m = time[1];
 
@@ -438,10 +457,10 @@ function from24to12(time) {
       h = h - 12;
       newTime = h + ':' + m + 'pm';
   }
-  else if (h == '0' || h == '00') {
+  else if (h === '0' || h === '00') {
       newTime = '12:' + m + 'am';
   }
-  else if (h == '12') {
+  else if (h === '12') {
       newTime = h + ':' + m + 'pm';
   }
   else {
