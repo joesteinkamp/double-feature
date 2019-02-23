@@ -67,7 +67,6 @@ class App extends Component {
     this.setState({
       showTimeDate: i.target.value
     });
-    
   }
 
   handleChangeZIP(i) {
@@ -90,6 +89,13 @@ class App extends Component {
     var timeBufferMax = parseInt(i.target.value);
     this.setState({
       timeBufferMax: timeBufferMax
+    });
+  }
+
+  handleChangeTheater(i) {
+    //console.log('Change Selected Theater');
+    this.setState({
+      theaterID: i.target.value
     });
   }
 
@@ -129,7 +135,11 @@ class App extends Component {
       app = <MoviesList data={this.state.data} selectedTheater={this.state.theaterID} onClick={(i) => this.handleClickedMovie(i)} />
     }
     else {
-      app = <MatchList data={this.state.data} selectedTheater={this.state.theaterID} selectedMovie={this.state.movieID} selectedMovieName={this.state.movieName} selectedMovieImage={this.state.movieImage} selectedMovieRunTime={this.state.movieRunTime} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} />
+      app = 
+      <div>
+        <FilterForm data={this.state.data} selectedTheater={this.state.theaterID} showTimeDate={this.state.showTimeDate} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} onClick={() => this.handleClickGrabData()} onChangeDate={(i) => this.handleChangeDate(i)} onChangeZIP={(i) => this.handleChangeZIP(i)} onChangeTimeBufferMin={(i) => this.handleChangeTimeBufferMin(i)} onChangeTimeBufferMax={(i) => this.handleChangeTimeBufferMax(i)} onChangeTheater={(i) => this.handleChangeTheater(i)} />
+        <MatchList data={this.state.data} selectedTheater={this.state.theaterID} selectedMovie={this.state.movieID} selectedMovieName={this.state.movieName} selectedMovieImage={this.state.movieImage} selectedMovieRunTime={this.state.movieRunTime} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} />
+      </div>
     }
 
     return (
@@ -165,6 +175,59 @@ class LocationForm extends Component {
   }
 }
 
+class FilterForm extends Component {  
+  refreshPage(){ 
+    window.location.reload(); 
+  }
+  
+  render() {
+
+    var theaters = [];
+    var theaterObjs = [];
+
+    //console.log(this.props.data);
+
+    // Go through each showtime, find theaters, and store a theater only once
+    this.props.data.forEach((movie, index) => {
+      if (movie.subType === 'Feature Film') {
+        movie.showtimes.forEach((showtime, index) => {
+          //console.log(showtime.theatre.name);
+
+          // Check to make sure the theater wasn't already added to the array
+          if (theaters.indexOf(showtime.theatre.name) === -1) {
+            // Add theater to array
+            theaters.push(showtime.theatre.name);
+            
+            // Create object & object array
+            var selectedText = ((showtime.theatre.id === this.props.selectedTheater) ? 'selected' : '');
+            var theaterObj = {id: showtime.theatre.id, name: showtime.theatre.name, selected: selectedText};
+            theaterObjs.push(theaterObj);
+          } 
+        });
+      }
+    });
+
+    return (
+      <div className="FilterForm">
+        <label htmlFor="timeWindowBuffer">Time Window Buffer
+            <input id="timeWindowBuffer" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
+        </label>
+        <label htmlFor="timeWindowRange">Time Window Range
+            <input id="timeWindowRange" type="number" value={this.props.timeBufferMax} onChange={(i) => this.props.onChangeTimeBufferMax(i)}></input>
+        </label>
+        <label htmlFor="theaterDropdown">Theater
+          <select onChange={(i) => this.props.onChangeTheater(i)}>
+            {theaterObjs.map((theater, index) => 
+              <option value={theater.id} selected={theater.selected}>{theater.name}</option>
+            )}
+          </select>
+        </label>
+        <button onClick={this.refreshPage}>New Search</button>
+      </div>
+    );
+  }
+}
+
 
 class TheaterList extends Component {
             
@@ -175,9 +238,9 @@ class TheaterList extends Component {
     //console.log(this.props.data);
 
     // Go through each showtime, find theaters, and store a theater only once
-    this.props.data.map((movie, index) => {
+    this.props.data.forEach((movie, index) => {
       if (movie.subType === 'Feature Film') {
-        movie.showtimes.map((showtime, index) => {
+        movie.showtimes.forEach((showtime, index) => {
           //console.log(showtime.theatre.name);
 
           // Check to make sure the theater wasn't already added to the array
@@ -221,14 +284,11 @@ class MoviesList extends Component {
     var filmObjs = [];
 
     // Go through each movie finding showtimes only for the selected theater
-    this.props.data.map((movie, index) => {
-
-      var filmTimes = [];
-
+    this.props.data.forEach((movie, index) => {
       // Only grab feature films (because others are missing required data)
       if (movie.subType === `Feature Film`) {
         // Loop through all the showtimes for each film
-        movie.showtimes.map((showtime, index) => {
+        movie.showtimes.forEach((showtime, index) => {
           // Only grab movies at the selected theater
           if (showtime.theatre.id === this.props.selectedTheater) {
             //filmTimes.push(showtime.dateTime);
@@ -280,15 +340,15 @@ class MoviesList extends Component {
 class MatchList extends Component {
   render () {
 
-    console.log('Looking for this movie (' + this.props.selectedMovie + ') at this theater (' + this.props.selectedTheater + ')');
-    console.log(this.props.timeBufferMin + ' - ' + this.props.timeBufferMax);
+    //console.log('Looking for this movie (' + this.props.selectedMovie + ') at this theater (' + this.props.selectedTheater + ')');
+    //console.log(this.props.timeBufferMin + ' - ' + this.props.timeBufferMax);
 
     var matches = [];
     var selectedMoviesTimes = [];
     var firstMovieRunTimeMins;
 
     // Loop through each movie to find selected 
-    this.props.data.map((movie, index) => {
+    this.props.data.forEach((movie, index) => {
       // Must search for name too because 3D movies get pulled in (WHICH IS FINE BUT NEED TO FIX OUTPUT TO IDENTIFY AS SUCH - NOT IMPLEMENTED YET)
       if (movie.rootId === this.props.selectedMovie && movie.title === this.props.selectedMovieName) {
         //console.log('Selected movie found.');
@@ -296,7 +356,7 @@ class MatchList extends Component {
         firstMovieRunTimeMins = convertRunTimeToMins(movie.runTime);
 
         // Pull showtimes
-        movie.showtimes.map((showtime, index) => {
+        movie.showtimes.forEach((showtime, index) => {
           // Only at selected theater
           if (showtime.theatre.id === this.props.selectedTheater) {
             //console.log('Showtime at selected theater found.')
@@ -311,19 +371,19 @@ class MatchList extends Component {
     console.log(selectedMoviesTimes);
       
     // Loop through each movie to find matches 
-    this.props.data.map((secondMovie, index) => {
+    this.props.data.forEach((secondMovie, index) => {
       // Only grab feature films (because others are missing required data)
       if (secondMovie.subType === `Feature Film`) {
         if (secondMovie.rootId !== this.props.selectedMovie) {
           var secondMovieRunTimeMins = convertRunTimeToMins(secondMovie.runTime);
           
           // Pull showtimes
-          secondMovie.showtimes.map((showtime, index) => {
+          secondMovie.showtimes.forEach((showtime, index) => {
             // Only at select theater
             if (showtime.theatre.id === this.props.selectedTheater) {
 
               // Check if it's a match by comparing every 
-              selectedMoviesTimes.map((selectMovieTime, index) => {
+              selectedMoviesTimes.forEach((selectMovieTime, index) => {
                 var firstMovieTime = convertTimeToMinutes(selectMovieTime);
                 var secondMovieTime = convertTimeToMinutes(showtime.dateTime);
                 
@@ -332,23 +392,22 @@ class MatchList extends Component {
                 var afterEndWindow = firstMovieTime + firstMovieRunTimeMins + this.props.timeBufferMax;
                 var beforeStartWindow = secondMovieTime + secondMovieRunTimeMins + this.props.timeBufferMin;
                 var beforeEndWindow = secondMovieTime + secondMovieRunTimeMins + this.props.timeBufferMax;
-                
-                console.log(afterStartWindow + ' - ' + afterEndWindow);
-                console.log(beforeStartWindow + ' - ' + beforeEndWindow);
+
+                var matchObj;
 
                 // Check if possible second movie is after selected movie
                 if ( secondMovieTime >= afterStartWindow && secondMovieTime <= afterEndWindow ) {
                   //console.log('Match found');
 
                   // Save match
-                  var matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieImage: this.props.selectedMovieImage, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieImage: secondMovie.preferredImage.uri, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
+                  matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieImage: this.props.selectedMovieImage, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieImage: secondMovie.preferredImage.uri, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
                   matches.push(matchObj);
                 }
                 else if ( firstMovieTime >= beforeStartWindow && firstMovieTime <= beforeEndWindow ) {
                   //console.log('Match found');
                   
                   // Save match
-                  var matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieImage: secondMovie.preferredImage.uri, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieImage: this.props.selectedMovieImage, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
+                  matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieImage: secondMovie.preferredImage.uri, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieImage: this.props.selectedMovieImage, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
                   matches.push(matchObj);
                 }
                 else {
@@ -380,6 +439,8 @@ class MatchList extends Component {
 
       var firstMovieTime = convertTimeToHuman(this.props.firstMovieTime);
       var secondMovieTime = convertTimeToHuman(this.props.secondMovieTime);
+
+      // http://developer.tmsimg.com/
 
       return (
         <div>
