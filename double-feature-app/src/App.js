@@ -54,6 +54,7 @@ class App extends Component {
     fetch(requestURI)
       .then(response=>response.json())
       .then(json=>{
+        console.log('API response');
         console.log(json);
         this.setState({
           data: json,
@@ -293,9 +294,11 @@ class MoviesList extends Component {
           if (showtime.theatre.id === this.props.selectedTheater) {
             //filmTimes.push(showtime.dateTime);
 
-            if (films.indexOf(movie.title) === -1) {       
+            // If film is already added don't add it OR if there is no runtime
+            if (films.indexOf(movie.title) === -1 && movie.runTime != null) {       
               films.push(movie.title);
 
+              console.log(movie.runTime);
               var runTime = convertRunTimeToMins(movie.runTime);
               
               var filmObj = {id: movie.rootId, name: movie.title, image: movie.preferredImage.uri, runTime: runTime, genres: movie.genres}
@@ -374,7 +377,7 @@ class MatchList extends Component {
     this.props.data.forEach((secondMovie, index) => {
       // Only grab feature films (because others are missing required data)
       if (secondMovie.subType === `Feature Film`) {
-        if (secondMovie.rootId !== this.props.selectedMovie) {
+        if (secondMovie.rootId !== this.props.selectedMovie && secondMovie.runTime != null) {
           var secondMovieRunTimeMins = convertRunTimeToMins(secondMovie.runTime);
           
           // Pull showtimes
