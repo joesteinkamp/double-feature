@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Async from 'react-promise';
 import './App.css';
 
 class App extends Component {
@@ -18,7 +19,8 @@ class App extends Component {
       movieSelected: false,
       movieID: '',
       movieName: '',
-      movieImage: '',
+      movieReleaseYear: '',
+      movieTempImg: '',
       movieRunTime: '',
       data: []
     };
@@ -113,7 +115,7 @@ class App extends Component {
     this.setState({ 
       movieID: i.id,
       movieName: i.name,
-      movieImage: i.image,
+      movieReleaseYear: i.releaseYear,
       movieRunTime: i.runTime,
       movieSelected: true
     });
@@ -139,7 +141,7 @@ class App extends Component {
       app = 
       <div>
         <FilterForm data={this.state.data} selectedTheater={this.state.theaterID} showTimeDate={this.state.showTimeDate} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} onClick={() => this.handleClickGrabData()} onChangeDate={(i) => this.handleChangeDate(i)} onChangeZIP={(i) => this.handleChangeZIP(i)} onChangeTimeBufferMin={(i) => this.handleChangeTimeBufferMin(i)} onChangeTimeBufferMax={(i) => this.handleChangeTimeBufferMax(i)} onChangeTheater={(i) => this.handleChangeTheater(i)} />
-        <MatchList data={this.state.data} selectedTheater={this.state.theaterID} selectedMovie={this.state.movieID} selectedMovieName={this.state.movieName} selectedMovieImage={this.state.movieImage} selectedMovieRunTime={this.state.movieRunTime} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} />
+        <MatchList data={this.state.data} selectedTheater={this.state.theaterID} selectedMovie={this.state.movieID} selectedMovieName={this.state.movieName} selectedMovieReleaseYear={this.state.movieReleaseYear} selectedMovieRunTime={this.state.movieRunTime} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} />
       </div>
     }
 
@@ -301,7 +303,7 @@ class MoviesList extends Component {
               console.log(movie.runTime);
               var runTime = convertRunTimeToMins(movie.runTime);
               
-              var filmObj = {id: movie.rootId, name: movie.title, image: movie.preferredImage.uri, runTime: runTime, genres: movie.genres}
+              var filmObj = {id: movie.rootId, name: movie.title, releaseYear: movie.releaseYear, runTime: runTime, genres: movie.genres}
               filmObjs.push(filmObj);  
             }
           }
@@ -320,7 +322,7 @@ class MoviesList extends Component {
     return (
       <ul>
         {filmObjs.map((movie, index) => 
-          <MovieListItem movieName={movie.name} movieImage={movie.image} movieRunTime={movie.runTime} movieID={movie.id} key={movie.id + movie.name} onClick={(i) => this.props.onClick(i)} />
+          <MovieListItem movieName={movie.name} movieReleaseYear={movie.releaseYear} movieRunTime={movie.runTime} movieID={movie.id} key={movie.id + movie.name} onClick={(i) => this.props.onClick(i)} />
         )}
       </ul>
     );
@@ -330,12 +332,15 @@ class MoviesList extends Component {
   class MovieListItem extends Component {
 
     render () {
-      
-      
-      var movieObj = {id: this.props.movieID, name: this.props.movieName, image: this.props.movieImage, runTime: this.props.movieRunTime};
+      var movieImg = getPoster(this.props.movieName, this.props.movieReleaseYear);
+       
+      var movieObj = {id: this.props.movieID, name: this.props.movieName, releaseYear: this.props.movieReleaseYear, runTime: this.props.movieRunTime};
 
       return (
-        <li onClick={(i) => this.props.onClick(movieObj)}>{this.props.movieName}</li>
+        <div>
+        <li onClick={(i) => this.props.onClick(movieObj)}> {this.props.movieName} ({this.props.movieReleaseYear})</li>
+        <Async promise={movieImg} then={(val) => <img src={val} />} />
+        </div>
       );
     }
   }
@@ -403,14 +408,14 @@ class MatchList extends Component {
                   //console.log('Match found');
 
                   // Save match
-                  matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieImage: this.props.selectedMovieImage, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieImage: secondMovie.preferredImage.uri, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
+                  matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieReleaseYear: this.props.selectedMovieReleaseYear, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieReleaseYear: secondMovie.releaseYear, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
                   matches.push(matchObj);
                 }
                 else if ( firstMovieTime >= beforeStartWindow && firstMovieTime <= beforeEndWindow ) {
                   //console.log('Match found');
                   
                   // Save match
-                  matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieImage: secondMovie.preferredImage.uri, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieImage: this.props.selectedMovieImage, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
+                  matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieReleaseYear: secondMovie.releaseYear, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieReleaseYear: this.props.selectedMovieReleaseYear, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
                   matches.push(matchObj);
                 }
                 else {
@@ -430,7 +435,7 @@ class MatchList extends Component {
     return (
       <div>
         {matches.map((match, index) => 
-            <MatchCard firstMovieID={match.firstMovieID} firstMovieName={match.firstMovieName} firstMovieImage={match.firstMovieImage} firstMovieTime={match.firstMovieTime} firstMovieRunTime={match.firstMovieRunTime} secondMovieID={match.secondMovieID} secondMovieName={match.secondMovieName} secondMovieImage={match.secondMovieImage} secondMovieTime={match.secondMovieTime} secondMovieRunTime={match.secondMovieRunTime} data={this.props.data}  />
+            <MatchCard firstMovieID={match.firstMovieID} firstMovieName={match.firstMovieName} firstMovieReleaseYear={match.firstMovieReleaseYear} firstMovieTime={match.firstMovieTime} firstMovieRunTime={match.firstMovieRunTime} secondMovieID={match.secondMovieID} secondMovieName={match.secondMovieName} secondMovieReleaseYear={match.secondMovieReleaseYear} secondMovieTime={match.secondMovieTime} secondMovieRunTime={match.secondMovieRunTime} data={this.props.data}  />
         )}
       </div>
     );
@@ -532,4 +537,36 @@ function from24to12(time) {
   }
 
   return newTime;
+}
+
+
+function getPoster(name, releaseYear) {
+  var apiKey = '6fb493e9';
+  
+  
+  // API Call (OMDBapi.com)
+  var requestURI = 'http://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
+  
+  return new Promise(function(resolve, reject) {
+    fetch(requestURI)
+    .then(response=>response.json())
+    .then(json=>{
+      //console.log('API response');
+      //console.log(json);
+      //console.log(json.Poster);
+      var movieImg = json.Poster;
+      resolve(movieImg);
+    });
+
+  });
+
+  // fetch(requestURI)
+  //   .then(response=>response.json())
+  //   .then(json=>{
+  //     console.log('API response');
+  //     //console.log(json);
+  //     //console.log(json.Poster);
+  //     var movieImg = json.Poster;
+  //     return movieImg;
+  //   });
 }
