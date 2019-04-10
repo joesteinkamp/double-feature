@@ -316,8 +316,6 @@ class MoviesList extends Component {
 
     filmObjs.sort((a,b) => (a.name.toUpperCase() < b.name.toUpperCase()) ? -1 : (a.name.toUpperCase() > b.name.toUpperCase()) ? 1 : 0  );
 
- 
-
 
     return (
       <ul>
@@ -541,32 +539,43 @@ function from24to12(time) {
 
 
 function getPoster(name, releaseYear) {
-  var apiKey = '6fb493e9';
+  // var apiKey = '6fb493e9';
+  var apiKey = '19b3319865fc202c784b309fa5d4d0ac';
   
   
   // API Call (OMDBapi.com)
-  var requestURI = 'http://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
-  
+  // var requestURI = 'http://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
+
+  // API Call (TheMovieDB.org)
+  var requestURI = 'https://api.themoviedb.org/3/search/movie?api_key=' +  apiKey + '&language=en-US&query=' + name + '&include_adult=false&primary_release_year=' + releaseYear;
+
+  console.log(requestURI);
+
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
     .then(response=>response.json())
     .then(json=>{
-      //console.log('API response');
-      //console.log(json);
-      //console.log(json.Poster);
-      var movieImg = json.Poster;
+      console.log(json);
+
+      // Get OMDB Poster
+      //var movieImg = json.Poster;
+
+      // Get TheMovieDB Poster
+      console.log(json.results.length);
+      
+      // Check if array is empty
+      if (json.results.length > 0) {
+        var movieImg = json.results[0].poster_path;
+        movieImg = 'https://image.tmdb.org/t/p/w500' + movieImg;
+      }
+      else { var movieImg = 'not set'; }
+
+      console.log(movieImg);
+
+      // Return image
       resolve(movieImg);
     });
 
   });
 
-  // fetch(requestURI)
-  //   .then(response=>response.json())
-  //   .then(json=>{
-  //     console.log('API response');
-  //     //console.log(json);
-  //     //console.log(json.Poster);
-  //     var movieImg = json.Poster;
-  //     return movieImg;
-  //   });
 }
