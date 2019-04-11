@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Async from 'react-promise';
 import './App.css';
 
+const mapBoxToken = 'pk.eyJ1IjoianN0ZWlua2EiLCJhIjoiY2ptMTZqMXV3MTFoazNwcnZ2bXQ3ZmRqaiJ9.usAuyqVA4cunrGMkHdo9bg';
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -273,8 +275,16 @@ class TheaterList extends Component {
 
   class TheaterListItem extends Component {
     render () {
+      var mapImg = geocodeLocation(this.props.theaterName);
+      
+      // var requestURI = 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/' + lat +',' + long + ',14.25,0,0/600x600?access_token=' + mapBoxToken;
+      
+
       return (
-        <li className="theaterItem" id={this.props.theaterID} onClick={(i) => this.props.onClick(this.props.theaterID)}>{this.props.theaterName}</li>
+        <div>
+          <li className="theaterItem" id={this.props.theaterID} onClick={(i) => this.props.onClick(this.props.theaterID)}>{this.props.theaterName}</li>
+          <Async promise={mapImg} then={(val) => <img src={'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/url-http%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/600x600?access_token=' + mapBoxToken} />} />
+        </div>
       );
     }
   }
@@ -599,7 +609,6 @@ function getPosterOMDB(name, releaseYear) {
       // Return image
       resolve(movieImg);
     });
-
   });
 }
 
@@ -607,4 +616,44 @@ function getPosterOMDB(name, releaseYear) {
 function remove3DFromName(name) {
   name = name.replace(' 3D', '');
   return name;
+}
+
+
+
+
+function geocodeLocation(locationName) {
+
+  // Get Geocode of Location
+  var requestURI = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + locationName + '.json?access_token=' + mapBoxToken;
+
+    fetch(requestURI)
+    .then(response=>response.json())
+    .then(json=>{
+        var lat = json.features[0].geometry.coordinates[0];
+        var long = json.features[0].geometry.coordinates[1];
+
+        getMapboxImage(lat, long);
+    });
+
+  return new Promise(function(resolve, reject) {
+    fetch(requestURI)
+    .then(response=>response.json())
+    .then(json=>{
+      var lat = json.features[0].geometry.coordinates[0];
+      var long = json.features[0].geometry.coordinates[1];
+
+      var geocodeObj = {"lat": lat, "long": long};      
+
+      // Return geocode
+      resolve(geocodeObj);
+    });
+  });
+}
+
+function getMapboxImage(lat, long) {
+  
+
+  // Get State Mapbox Map
+  var requestURI = 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/' + lat +',' + long + ',14.25,0,0/600x600?access_token=' + mapBoxToken;
+
 }
