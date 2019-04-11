@@ -649,11 +649,3 @@ function geocodeLocation(locationName) {
     });
   });
 }
-
-function getMapboxImage(lat, long) {
-  
-
-  // Get State Mapbox Map
-  var requestURI = 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/' + lat +',' + long + ',14.25,0,0/600x600?access_token=' + mapBoxToken;
-
-}
