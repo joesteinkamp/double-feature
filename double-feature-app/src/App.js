@@ -626,15 +626,6 @@ function geocodeLocation(locationName) {
   // Get Geocode of Location
   var requestURI = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + locationName + '.json?access_token=' + mapBoxToken;
 
-    fetch(requestURI)
-    .then(response=>response.json())
-    .then(json=>{
-        var lat = json.features[0].geometry.coordinates[0];
-        var long = json.features[0].geometry.coordinates[1];
-
-        getMapboxImage(lat, long);
-    });
-
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
     .then(response=>response.json())
