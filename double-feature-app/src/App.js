@@ -147,9 +147,9 @@ class App extends Component {
 
     return (
       <div className="App">
-        <header className="App-header">
+        <div className="main-container">
           {app}
-        </header>
+        </div>
       </div>
     );
   }
@@ -300,7 +300,6 @@ class MoviesList extends Component {
             if (films.indexOf(movie.title) === -1 && movie.runTime != null) {       
               films.push(movie.title);
 
-              console.log(movie.runTime);
               var runTime = convertRunTimeToMins(movie.runTime);
               
               var filmObj = {id: movie.rootId, name: movie.title, releaseYear: movie.releaseYear, runTime: runTime, genres: movie.genres}
@@ -312,17 +311,16 @@ class MoviesList extends Component {
 
     });
 
-    //console.log('Outputing parsed individual films');
-
+    // Sort List of Movies Alphabetically
     filmObjs.sort((a,b) => (a.name.toUpperCase() < b.name.toUpperCase()) ? -1 : (a.name.toUpperCase() > b.name.toUpperCase()) ? 1 : 0  );
 
 
     return (
-      <ul>
+      <div className="movies-list">
         {filmObjs.map((movie, index) => 
           <MovieListItem movieName={movie.name} movieReleaseYear={movie.releaseYear} movieRunTime={movie.runTime} movieID={movie.id} key={movie.id + movie.name} onClick={(i) => this.props.onClick(i)} />
         )}
-      </ul>
+      </div>
     );
   }
 }
@@ -334,10 +332,16 @@ class MoviesList extends Component {
        
       var movieObj = {id: this.props.movieID, name: this.props.movieName, releaseYear: this.props.movieReleaseYear, runTime: this.props.movieRunTime};
 
+      var optional3DLabel = '';
+      if (this.props.movieName.indexOf(' 3D') > -1) {
+        optional3DLabel = <p className="threeDlabel">3D</p>
+      }
+
       return (
-        <div>
-        <li onClick={(i) => this.props.onClick(movieObj)}> {this.props.movieName} ({this.props.movieReleaseYear})</li>
-        <Async promise={movieImg} then={(val) => <img src={val} />} />
+        <div className="movie-list-item" onClick={(i) => this.props.onClick(movieObj)}>
+          {/* {this.props.movieName} ({this.props.movieReleaseYear}) */}
+          <Async promise={movieImg} then={(val) => <img src={val} />} />
+          { optional3DLabel }
         </div>
       );
     }
@@ -539,17 +543,49 @@ function from24to12(time) {
 
 
 function getPoster(name, releaseYear) {
-  // var apiKey = '6fb493e9';
-  var apiKey = '19b3319865fc202c784b309fa5d4d0ac';
-  
-  
-  // API Call (OMDBapi.com)
-  // var requestURI = 'http://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
+  var apiKey = '19b3319865fc202c784b309fa5d4d0ac'; // TheMovieDB
+
+  if (name.indexOf(' 3D') > -1 ) {
+    name = remove3DFromName(name);
+  }
+  console.log(name);
 
   // API Call (TheMovieDB.org)
   var requestURI = 'https://api.themoviedb.org/3/search/movie?api_key=' +  apiKey + '&language=en-US&query=' + name + '&include_adult=false&primary_release_year=' + releaseYear;
 
-  console.log(requestURI);
+  return new Promise(function(resolve, reject) {
+    fetch(requestURI)
+    .then(response=>response.json())
+    .then(json=>{
+      // Get OMDB Poster
+      // var movieImg = json.Poster;
+
+      // Get TheMovieDB Poster
+      // Check if array is empty
+      if (json.results.length > 0) {
+        var movieImg = json.results[0].poster_path;
+        movieImg = 'https://image.tmdb.org/t/p/w500' + movieImg;
+      }
+      else { 
+        var movieImg = getPosterOMDB(name, releaseYear).then((value) => {
+          return value;
+        }); 
+      }
+
+      // Return image
+      resolve(movieImg);
+    });
+
+  });
+
+}
+
+
+function getPosterOMDB(name, releaseYear) {
+  var apiKey = '6fb493e9'; // OMDB
+
+  // API Call (OMDBapi.com)
+  var requestURI = 'http://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
 
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
@@ -558,24 +594,17 @@ function getPoster(name, releaseYear) {
       console.log(json);
 
       // Get OMDB Poster
-      //var movieImg = json.Poster;
-
-      // Get TheMovieDB Poster
-      console.log(json.results.length);
-      
-      // Check if array is empty
-      if (json.results.length > 0) {
-        var movieImg = json.results[0].poster_path;
-        movieImg = 'https://image.tmdb.org/t/p/w500' + movieImg;
-      }
-      else { var movieImg = 'not set'; }
-
-      console.log(movieImg);
+      var movieImg = json.Poster;
 
       // Return image
       resolve(movieImg);
     });
 
   });
+}
 
+
+function remove3DFromName(name) {
+  name = name.replace(' 3D', '');
+  return name;
 }
