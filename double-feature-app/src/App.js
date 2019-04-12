@@ -168,13 +168,15 @@ class LocationForm extends Component {
         <label htmlFor="zipCode">ZIP
             <input id="zipCode" type="text" pattern="\d*" value={this.props.zipCode} onChange={(i) => this.props.onChangeZIP(i)}></input>
         </label>
-        <label htmlFor="timeWindowBuffer">Time Window Buffer
-            <input id="timeWindowBuffer" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
+        <label htmlFor="timeBufferMin">Break Between Movies Minimum
+            <input id="timeBufferMin" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
+            <span className="input-helper-text">minutes</span>
         </label>
-        <label htmlFor="timeWindowRange">Time Window Range
-            <input id="timeWindowRange" type="number" value={this.props.timeBufferMax} onChange={(i) => this.props.onChangeTimeBufferMax(i)}></input>
+        <label htmlFor="timeBufferMax">Maximum Break Between Movies
+            <input id="timeBufferMax" type="number" value={this.props.timeBufferMax} onChange={(i) => this.props.onChangeTimeBufferMax(i)}></input>
+            <span className="input-helper-text">minutes</span>
         </label>
-        <button className="" onClick={() => this.props.onClick()}>Find Nearby Movies</button>
+        <button className="findNearbyMovies" onClick={() => this.props.onClick()}>Find Nearby Movies</button>
       </div>
     );
   }
@@ -262,12 +264,10 @@ class TheaterList extends Component {
     });
 
     return (
-      <div>
-        <ol>
-          {theaterObjs.map((theater, index) => 
-            <TheaterListItem theaterName={theater.name} key={theater.id} theaterID={theater.id} onClick={(i) => this.props.onClick(i)} />
-          )}
-        </ol>
+      <div className="theater-list">
+        {theaterObjs.map((theater, index) => 
+          <TheaterListItem theaterName={theater.name} key={theater.id} theaterID={theater.id} onClick={(i) => this.props.onClick(i)} />
+        )}
       </div>
     );
   }
@@ -276,14 +276,11 @@ class TheaterList extends Component {
   class TheaterListItem extends Component {
     render () {
       var mapImg = geocodeLocation(this.props.theaterName);
-      
-      // var requestURI = 'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/' + lat +',' + long + ',14.25,0,0/600x600?access_token=' + mapBoxToken;
-      
 
       return (
-        <div>
-          <li className="theaterItem" id={this.props.theaterID} onClick={(i) => this.props.onClick(this.props.theaterID)}>{this.props.theaterName}</li>
-          <Async promise={mapImg} then={(val) => <img src={'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/url-http%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/600x600?access_token=' + mapBoxToken} />} />
+        <div className="theater-list-item" onClick={(i) => this.props.onClick(this.props.theaterID)}>
+          <div className="theatername image-overlay">{this.props.theaterName}</div>
+          <Async promise={mapImg} then={(val) => <img src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-http%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
         </div>
       );
     }
@@ -344,7 +341,7 @@ class MoviesList extends Component {
 
       var optional3DLabel = '';
       if (this.props.movieName.indexOf(' 3D') > -1) {
-        optional3DLabel = <p className="threeDlabel">3D</p>
+        optional3DLabel = <div className="threeDlabel image-overlay">3D</div>
       }
 
       return (
@@ -445,7 +442,7 @@ class MatchList extends Component {
     console.log(matches);
 
     return (
-      <div>
+      <div className="match-list">
         {matches.map((match, index) => 
             <MatchCard firstMovieID={match.firstMovieID} firstMovieName={match.firstMovieName} firstMovieReleaseYear={match.firstMovieReleaseYear} firstMovieTime={match.firstMovieTime} firstMovieRunTime={match.firstMovieRunTime} secondMovieID={match.secondMovieID} secondMovieName={match.secondMovieName} secondMovieReleaseYear={match.secondMovieReleaseYear} secondMovieTime={match.secondMovieTime} secondMovieRunTime={match.secondMovieRunTime} data={this.props.data}  />
         )}
@@ -460,11 +457,14 @@ class MatchList extends Component {
       var firstMovieTime = convertTimeToHuman(this.props.firstMovieTime);
       var secondMovieTime = convertTimeToHuman(this.props.secondMovieTime);
 
-      // http://developer.tmsimg.com/
+      var firstMovieImg = getPoster(this.props.firstMovieName, this.props.firstMovieReleaseYear);
+      var secondMovieImg = getPoster(this.props.secondMovieName, this.props.secondMovieReleaseYear);
 
       return (
-        <div>
-          <p>{this.props.firstMovieName} @ {firstMovieTime} ({this.props.firstMovieRunTime}) + {this.props.secondMovieName} at {secondMovieTime} ({this.props.secondMovieRunTime})</p>
+        <div className="match-list-item">
+          <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}</div>
+          <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" src={val} />} />
+          <Async promise={secondMovieImg} then={(val) => <img className="second-match-image" src={val} />} />
         </div>
       );
     }

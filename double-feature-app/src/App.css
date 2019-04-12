@@ -1,45 +1,139 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:300,400,700,900');
+
+body {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
+  background:rgba(80, 108, 140, 1);
+}
+
 .App {
-  text-align: center;
   margin: 40px;
 }
 
 
 
+.image-overlay {
+  background: rgba(255,255,255,.72);
+  text-align: center;
+  border-radius: 20px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  position: absolute;
+  top: 10%;
+  margin-left: auto;
+  margin-right: auto;
+  left: 0;
+  right: 0;
+  padding: 8px 16px;
+  max-width: 72%;
+  text-align: center;
+}
+
+
+/* Location Form */
+.LocationForm {
+  margin: 0 auto;
+  max-width: 600px;
+}
+  .LocationForm label {
+    display: block;
+    font-size: 20px;
+    line-height: 32px;
+    color: #fff;
+    position: relative;
+  }
+  .LocationForm input {
+    display: block;
+    width: 100%;
+    padding: 8px 20px;
+    margin: 0 0 16px;
+    border: 1px solid #cccccc;
+    border-radius: 40px;
+    font-size: 24px;
+    line-height: 32px;
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+  }
+    .LocationForm .input-helper-text {
+      position: absolute;
+      bottom: 10px;
+      right: 24px;
+      color: #ababab;
+    }
+  .LocationForm button {
+    width: 100%;
+    font-size: 24px;
+    line-height: 32px;
+    color: #fff;
+    background-color: #4A90E2;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 40px;
+    margin-top: 16px;
+    font-family: 'Lato', sans-serif;
+  }
+
+
+
+/* Cards: Theaters, Movies, Matches */
+.theater-list-item img, .movie-list-item img, .match-list-item img {
+  width: 100%;
+  border-radius: 40px;
+  box-shadow: 0px 2px 32px rgba(0, 0, 0, 0.3), 0 2px 50px rgba(80, 108, 140, 0.64);
+  display: block;
+}
+.match-list-item img {
+  width: 50%;
+  border-radius: 0;
+  display: inline;
+}
+  img.first-match-image {
+    border-top-left-radius: 40px;
+    border-bottom-left-radius: 40px;
+  }
+  img.second-match-image {
+    border-top-right-radius: 40px;
+    border-bottom-right-radius: 40px;
+  }
+.theater-list-item:hover img, .movie-list-item:hover img {
+    box-shadow: 0px 2px 32px rgba(255, 255, 255, 0.1), 0px 0px 2px 1px rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+  }
+  .theater-list-item:active img, .movie-list-item:active img {
+    box-shadow: 0px 2px 16px rgba(255, 255, 255, 0.1);
+  }
+
+.movie-list-item .threeDlabel {
+  width: 80px;
+}
+
+
 /* CSS GRID */
 
-.movies-list {
+.theater-list, .movies-list, .match-list {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   grid-gap: 24px;
 }
 
-.movie-list-item {
+.theater-list-item, .movie-list-item, .match-list-item {
   grid-column: span 3;
+  position: relative;
+  padding: 0;
 }
-  .movie-list-item img {
-    width: 100%;
-    border-radius: 40px;
-  }
-  .movie-list-item .threeDlabel {
-    position: relative;
-    bottom: 100px;
-    background: rgba(255,255,255,.6);
-    width: 80px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    left: 50%;
-    margin-left: -40px;
-    text-align: center;
-    border-radius: 20px;
+  .match-list-item {
+    grid-column: span 4;
   }
 
+
 @media screen and (max-width: 768px) {
-  .movie-list-item {
+  .movie-list-item, .theater-list-item, .match-list-item {
     grid-column: span 6;
   }
 }
 @media screen and (max-width: 480px) {
-  .movie-list-item {
+  .movie-list-item, .theater-list-item, .match-list-item {
     grid-column: span 12;
   }
 }
