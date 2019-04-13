@@ -216,20 +216,20 @@ class FilterForm extends Component {
 
     return (
       <div className="FilterForm">
-        <label htmlFor="timeWindowBuffer">Time Window Buffer
+        <label className="col-3" htmlFor="timeWindowBuffer">Break Between Movies Minimum
             <input id="timeWindowBuffer" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
         </label>
-        <label htmlFor="timeWindowRange">Time Window Range
+        <label className="col-3" htmlFor="timeWindowRange">Maximum Break Between Movies
             <input id="timeWindowRange" type="number" value={this.props.timeBufferMax} onChange={(i) => this.props.onChangeTimeBufferMax(i)}></input>
         </label>
-        <label htmlFor="theaterDropdown">Theater
+        <label className="col-3" htmlFor="theaterDropdown">Theater
           <select onChange={(i) => this.props.onChangeTheater(i)}>
             {theaterObjs.map((theater, index) => 
               <option value={theater.id} selected={theater.selected}>{theater.name}</option>
             )}
           </select>
         </label>
-        <button onClick={this.refreshPage}>New Search</button>
+        <button className="col-3" onClick={this.refreshPage}>New Search</button>
       </div>
     );
   }

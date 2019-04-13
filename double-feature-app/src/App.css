@@ -3,7 +3,7 @@
 body {
   font-family: 'Lato', sans-serif;
   font-weight: 400;
-  background:rgba(80, 108, 140, 1);
+  background:rgba(40, 44, 47, 1);
 }
 
 .App {
@@ -35,14 +35,14 @@ body {
   margin: 0 auto;
   max-width: 600px;
 }
-  .LocationForm label {
+  .LocationForm label, .FilterForm label {
     display: block;
     font-size: 20px;
     line-height: 32px;
     color: #fff;
     position: relative;
   }
-  .LocationForm input {
+  .LocationForm input, .FilterForm input {
     display: block;
     width: 100%;
     padding: 8px 20px;
@@ -60,7 +60,7 @@ body {
       right: 24px;
       color: #ababab;
     }
-  .LocationForm button {
+  .LocationForm button, .FilterForm button {
     width: 100%;
     font-size: 24px;
     line-height: 32px;
@@ -72,7 +72,31 @@ body {
     border-radius: 40px;
     margin-top: 16px;
     font-family: 'Lato', sans-serif;
+    cursor: pointer;
   }
+
+
+/* Match Filter Form Options */
+.FilterForm {
+  margin-bottom: 24px;
+}
+  .FilterForm select {
+    display: block;
+    width: 100%;
+    padding: 8px 20px;
+    margin: 0 0 16px;
+    border: 1px solid #cccccc;
+    border-radius: 40px;
+    font-size: 24px;
+    line-height: 32px;
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+    -webkit-appearance: none;
+  }
+  .FilterForm input, .FilterForm select {
+    margin: 0;
+  }
+
 
 
 
@@ -111,7 +135,7 @@ body {
 
 /* CSS GRID */
 
-.theater-list, .movies-list, .match-list {
+.theater-list, .movies-list, .match-list, .FilterForm {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   grid-gap: 24px;
@@ -126,6 +150,10 @@ body {
     grid-column: span 4;
   }
 
+.col-3 {
+  grid-column: span 3;
+  align-self: end;
+}
 
 @media screen and (max-width: 768px) {
   .movie-list-item, .theater-list-item, .match-list-item {
@@ -135,5 +163,15 @@ body {
 @media screen and (max-width: 480px) {
   .movie-list-item, .theater-list-item, .match-list-item {
     grid-column: span 12;
+  }
+
+  .FilterForm {
+    grid-gap: 8px;
+  }
+  .FilterForm input {
+    margin-bottom: 8px;
+  }
+  .col-3 {
+    grid-column: span 6;
   }
 }
