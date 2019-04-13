@@ -115,6 +115,9 @@ body {
   width: 50%;
   border-radius: 0;
   display: inline;
+  vertical-align: top;
+  height: 100%;
+  box-shadow: none;
 }
   img.first-match-image {
     border-top-left-radius: 40px;
@@ -152,6 +155,8 @@ body {
 }
   .match-list-item {
     grid-column: span 4;
+    height: 100%;
+    overflow: hidden;
   }
 
 .col-3 {
