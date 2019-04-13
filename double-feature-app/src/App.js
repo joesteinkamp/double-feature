@@ -162,13 +162,13 @@ class LocationForm extends Component {
   render() {
     return (
       <div className="LocationForm">
-        <label htmlFor="showTimeDate">Date: 
+        <label htmlFor="showTimeDate">Date 
         <input id="showTimeDate" type="date" value={this.props.showTimeDate} onChange={(i) => this.props.onChangeDate(i)}></input>
         </label>
         <label htmlFor="zipCode">ZIP
             <input id="zipCode" type="text" pattern="\d*" value={this.props.zipCode} onChange={(i) => this.props.onChangeZIP(i)}></input>
         </label>
-        <label htmlFor="timeBufferMin">Break Between Movies Minimum
+        <label htmlFor="timeBufferMin">Minimum Break Between Movies
             <input id="timeBufferMin" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
             <span className="input-helper-text">minutes</span>
         </label>
@@ -216,7 +216,7 @@ class FilterForm extends Component {
 
     return (
       <div className="FilterForm">
-        <label className="col-3" htmlFor="timeWindowBuffer">Break Between Movies Minimum
+        <label className="col-3" htmlFor="timeWindowBuffer">Minimum Break Between Movies
             <input id="timeWindowBuffer" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
         </label>
         <label className="col-3" htmlFor="timeWindowRange">Maximum Break Between Movies

@@ -42,7 +42,7 @@ body {
     color: #fff;
     position: relative;
   }
-  .LocationForm input, .FilterForm input {
+  .LocationForm input, .FilterForm input, .FilterForm select {
     display: block;
     width: 100%;
     padding: 8px 20px;
@@ -53,6 +53,9 @@ body {
     line-height: 32px;
     box-sizing: border-box;
     font-family: 'Lato', sans-serif;
+    height: 52px;
+    -webkit-appearance: none;
+    background: #fff;
   }
     .LocationForm .input-helper-text {
       position: absolute;
@@ -73,6 +76,7 @@ body {
     margin-top: 16px;
     font-family: 'Lato', sans-serif;
     cursor: pointer;
+    max-height: 56px;
   }
 
 
@@ -155,12 +159,21 @@ body {
   align-self: end;
 }
 
+
+/* Media Queries */
+
+
 @media screen and (max-width: 768px) {
   .movie-list-item, .theater-list-item, .match-list-item {
     grid-column: span 6;
   }
 }
 @media screen and (max-width: 480px) {
+  .App {
+    margin: 16px;
+  }
+  
+  /* CSS Grids */
   .movie-list-item, .theater-list-item, .match-list-item {
     grid-column: span 12;
   }
