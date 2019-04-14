@@ -53,7 +53,7 @@ class App extends Component {
       var long = position.coords.longitude;
       
       var requestURI =  'https://api.mapbox.com/geocoding/v5/mapbox.places/' + long + ',' + lat + '.json?access_token=' + mapBoxToken;
-      console.log(requestURI);
+      //console.log(requestURI);
   
       fetch(requestURI)
       .then(response=>response.json())
