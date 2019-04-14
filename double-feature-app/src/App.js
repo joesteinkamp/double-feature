@@ -8,12 +8,13 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.handleLoad = this.handleLoad.bind(this);
+    this.handleClickGetLocation = this.handleClickGetLocation.bind(this);
 
     this.state = {
       APIKey: 'y9q8wtsznhu4zf9u9e294xtm',
       dataLoaded: false,
       showTimeDate: '2019-02-01',
-      zipCode: '60601',
+      zipCode: '',
       timeBufferMin: 5,
       timeBufferMax: 30,
       theaterSelected: false,
@@ -45,26 +46,78 @@ class App extends Component {
 
     this.setState({showTimeDate: today});
 
-    // Get current zip code of user
+    navigator.geolocation.getCurrentPosition((position) => {
 
-  }
-
-  handleClickGrabData() {
-    //console.log('Grabbing data');
-
-    // API Call (GraceNote Developer - OnConnect)
-    var requestURI = 'http://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + this.state.APIKey;
+      // Get the coordinates of the current position.
+      var lat = position.coords.latitude;
+      var long = position.coords.longitude;
+      
+      var requestURI =  'https://api.mapbox.com/geocoding/v5/mapbox.places/' + long + ',' + lat + '.json?access_token=' + mapBoxToken;
+      console.log(requestURI);
   
-    fetch(requestURI)
+      fetch(requestURI)
       .then(response=>response.json())
       .then(json=>{
-        console.log('API response');
-        console.log(json);
-        this.setState({
-          data: json,
-          dataLoaded: true
+        json.features[0].context.forEach((context, index) => {
+          
+          if (context.id.indexOf('postcode') >= 0 ) {
+            
+            console.log(context.text);
+            this.setState({
+              zipCode: context.text
+            });
+          }
         });
       });
+    });
+  }
+
+
+handleClickGetLocation() {
+  navigator.geolocation.getCurrentPosition((position) => {
+
+    // Get the coordinates of the current position.
+    var lat = position.coords.latitude;
+    var long = position.coords.longitude;
+    
+    var requestURI =  'https://api.mapbox.com/geocoding/v5/mapbox.places/' + long + ',' + lat + '.json?access_token=' + mapBoxToken;
+    console.log(requestURI);
+
+    fetch(requestURI)
+    .then(response=>response.json())
+    .then(json=>{
+      json.features[0].context.forEach((context, index) => {
+        
+        if (context.id.indexOf('postcode') >= 0 ) {
+          
+          console.log(context.text);
+          this.setState({
+            zipCode: context.text
+          });
+        }
+      });
+    });
+  });
+}
+
+  handleClickGrabData() {
+    // Check if zip exists
+    if ( this.state.zipCode !== '' ) {
+      // API Call (GraceNote Developer - OnConnect)
+      var requestURI = 'http://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + this.state.APIKey;
+    
+      fetch(requestURI)
+        .then(response=>response.json())
+        .then(json=>{
+          console.log('API response');
+          console.log(json);
+          this.setState({
+            data: json,
+            dataLoaded: true
+          });
+        });
+    }
+    else { alert('Please enter Zip Code.'); }
   }
 
   handleChangeDate(i) {
@@ -131,7 +184,7 @@ class App extends Component {
     var app;
 
     if (this.state.dataLoaded === false) {
-      app = <LocationForm showTimeDate={this.state.showTimeDate} zipCode={this.state.zipCode} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} onClick={() => this.handleClickGrabData()} onChangeDate={(i) => this.handleChangeDate(i)} onChangeZIP={(i) => this.handleChangeZIP(i)} onChangeTimeBufferMin={(i) => this.handleChangeTimeBufferMin(i)} onChangeTimeBufferMax={(i) => this.handleChangeTimeBufferMax(i)} />
+      app = <LocationForm showTimeDate={this.state.showTimeDate} zipCode={this.state.zipCode} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} onClick={() => this.handleClickGrabData()} onChangeDate={(i) => this.handleChangeDate(i)} onChangeZIP={(i) => this.handleChangeZIP(i)} onChangeTimeBufferMin={(i) => this.handleChangeTimeBufferMin(i)} onChangeTimeBufferMax={(i) => this.handleChangeTimeBufferMax(i)} onClickGeo={(i) => this.handleClickGetLocation(i)} />
     }
     else if (this.state.theaterSelected === false ) {
       app = <TheaterList data={this.state.data} onClick={(i) => this.handleClickedTheater(i)} />
@@ -167,6 +220,7 @@ class LocationForm extends Component {
         </label>
         <label htmlFor="zipCode">ZIP
             <input id="zipCode" type="text" pattern="\d*" value={this.props.zipCode} onChange={(i) => this.props.onChangeZIP(i)}></input>
+            <span className="input-helper-text" onClick={() => this.props.onClickGeo()}><i className="material-icons">location_on</i></span>
         </label>
         <label htmlFor="timeBufferMin">Minimum Break Between Movies
             <input id="timeBufferMin" type="number" value={this.props.timeBufferMin} onChange={(i) => this.props.onChangeTimeBufferMin(i)}></input>
@@ -191,8 +245,6 @@ class FilterForm extends Component {
 
     var theaters = [];
     var theaterObjs = [];
-
-    //console.log(this.props.data);
 
     // Go through each showtime, find theaters, and store a theater only once
     this.props.data.forEach((movie, index) => {
@@ -280,7 +332,7 @@ class TheaterList extends Component {
       return (
         <div className="theater-list-item" onClick={(i) => this.props.onClick(this.props.theaterID)}>
           <div className="theatername image-overlay">{this.props.theaterName}</div>
-          <Async promise={mapImg} then={(val) => <img src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-http%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
+          <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-http%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
         </div>
       );
     }
@@ -347,7 +399,7 @@ class MoviesList extends Component {
       return (
         <div className="movie-list-item" onClick={(i) => this.props.onClick(movieObj)}>
           {/* {this.props.movieName} ({this.props.movieReleaseYear}) */}
-          <Async promise={movieImg} then={(val) => <img src={val} />} />
+          <Async promise={movieImg} then={(val) => <img alt={this.props.movieName} src={val} />} />
           { optional3DLabel }
         </div>
       );
@@ -463,8 +515,8 @@ class MatchList extends Component {
       return (
         <div className="match-list-item">
           <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}</div>
-          <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" src={val} />} />
-          <Async promise={secondMovieImg} then={(val) => <img className="second-match-image" src={val} />} />
+          <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" alt={this.props.firstMovieName} src={val} />} />
+          <Async promise={secondMovieImg} then={(val) => <img className="second-match-image" alt={this.props.secondMovieName} src={val} />} />
         </div>
       );
     }
@@ -568,16 +620,16 @@ function getPoster(name, releaseYear) {
     .then(response=>response.json())
     .then(json=>{
       // Get OMDB Poster
-      // var movieImg = json.Poster;
+      var movieImg;
 
       // Get TheMovieDB Poster
       // Check if array is empty
       if (json.results.length > 0) {
-        var movieImg = json.results[0].poster_path;
+        movieImg = json.results[0].poster_path;
         movieImg = 'https://image.tmdb.org/t/p/w500' + movieImg;
       }
       else { 
-        var movieImg = getPosterOMDB(name, releaseYear).then((value) => {
+        movieImg = getPosterOMDB(name, releaseYear).then((value) => {
           return value;
         }); 
       }
