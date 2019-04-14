@@ -332,6 +332,7 @@ class TheaterList extends Component {
       return (
         <div className="theater-list-item" onClick={(i) => this.props.onClick(this.props.theaterID)}>
           <div className="theatername image-overlay">{this.props.theaterName}</div>
+          {/* <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/pin-l+ffffff(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} /> */}
           <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-https%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
         </div>
       );
