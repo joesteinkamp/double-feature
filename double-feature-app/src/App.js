@@ -104,7 +104,7 @@ handleClickGetLocation() {
     // Check if zip exists
     if ( this.state.zipCode !== '' ) {
       // API Call (GraceNote Developer - OnConnect)
-      var requestURI = 'http://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + this.state.APIKey;
+      var requestURI = 'https://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + this.state.APIKey;
     
       fetch(requestURI)
         .then(response=>response.json())
@@ -332,7 +332,7 @@ class TheaterList extends Component {
       return (
         <div className="theater-list-item" onClick={(i) => this.props.onClick(this.props.theaterID)}>
           <div className="theatername image-overlay">{this.props.theaterName}</div>
-          <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-http%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
+          <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-https%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
         </div>
       );
     }
@@ -647,7 +647,7 @@ function getPosterOMDB(name, releaseYear) {
   var apiKey = '6fb493e9'; // OMDB
 
   // API Call (OMDBapi.com)
-  var requestURI = 'http://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
+  var requestURI = 'https://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
 
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
