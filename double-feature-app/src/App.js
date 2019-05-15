@@ -1,8 +1,14 @@
 import React, { Component } from 'react';
 import Async from 'react-promise';
 import './App.css';
+import apiConfig from './apiKeys';
 
-const mapBoxToken = 'pk.eyJ1IjoianN0ZWlua2EiLCJhIjoiY2ptMTZqMXV3MTFoazNwcnZ2bXQ3ZmRqaiJ9.usAuyqVA4cunrGMkHdo9bg';
+//const mapBoxToken = 'pk.eyJ1IjoianN0ZWlua2EiLCJhIjoiY2ptMTZqMXV3MTFoazNwcnZ2bXQ3ZmRqaiJ9.usAuyqVA4cunrGMkHdo9bg';
+const onConnectKey = apiConfig.onConnectKey;
+const theMovieDBKey = apiConfig.theMovieDBKey;
+const omdbKey = apiConfig.omdbKey;
+const mapBoxToken = apiConfig.mapBoxToken;
+
 
 class App extends Component {
   constructor(props) {
@@ -11,7 +17,6 @@ class App extends Component {
     this.handleClickGetLocation = this.handleClickGetLocation.bind(this);
 
     this.state = {
-      APIKey: 'y9q8wtsznhu4zf9u9e294xtm',
       dataLoaded: false,
       showTimeDate: '2019-02-01',
       zipCode: '',
@@ -104,8 +109,8 @@ handleClickGetLocation() {
     // Check if zip exists
     if ( this.state.zipCode !== '' ) {
       // API Call (GraceNote Developer - OnConnect)
-      var requestURI = 'https://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + this.state.APIKey;
-    
+      var requestURI = 'https://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + onConnectKey;
+
       fetch(requestURI)
         .then(response=>response.json())
         .then(json=>{
@@ -332,7 +337,6 @@ class TheaterList extends Component {
       return (
         <div className="theater-list-item" onClick={(i) => this.props.onClick(this.props.theaterID)}>
           <div className="theatername image-overlay">{this.props.theaterName}</div>
-          {/* <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/pin-l+ffffff(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} /> */}
           <Async promise={mapImg} then={(val) => <img alt={this.props.theaterName} src={'https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/url-https%3A%2F%2Fdoublefeature.joesteinkamp.com%2Flocation_pin_dark.png(' + val.lat + ',' + val.long + ')/' + val.lat + ',' + val.long +',14.25,0,0/500x750?access_token=' + mapBoxToken} />} />
         </div>
       );
@@ -606,15 +610,13 @@ function from24to12(time) {
 
 
 function getPoster(name, releaseYear) {
-  var apiKey = '19b3319865fc202c784b309fa5d4d0ac'; // TheMovieDB
-
   if (name.indexOf(' 3D') > -1 ) {
     name = remove3DFromName(name);
   }
   console.log(name);
 
   // API Call (TheMovieDB.org)
-  var requestURI = 'https://api.themoviedb.org/3/search/movie?api_key=' +  apiKey + '&language=en-US&query=' + name + '&include_adult=false&primary_release_year=' + releaseYear;
+  var requestURI = 'https://api.themoviedb.org/3/search/movie?api_key=' +  theMovieDBKey + '&language=en-US&query=' + name + '&include_adult=false&primary_release_year=' + releaseYear;
 
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
@@ -645,10 +647,8 @@ function getPoster(name, releaseYear) {
 
 
 function getPosterOMDB(name, releaseYear) {
-  var apiKey = '6fb493e9'; // OMDB
-
   // API Call (OMDBapi.com)
-  var requestURI = 'https://www.omdbapi.com/?apikey=' +  apiKey + '&t=' + name + '&y=' + releaseYear;
+  var requestURI = 'https://www.omdbapi.com/?apikey=' +  omdbKey + '&t=' + name + '&y=' + releaseYear;
 
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
