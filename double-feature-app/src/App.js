@@ -3,7 +3,7 @@ import Async from 'react-promise';
 import './App.css';
 import apiConfig from './apiKeys';
 
-//const mapBoxToken = 'pk.eyJ1IjoianN0ZWlua2EiLCJhIjoiY2ptMTZqMXV3MTFoazNwcnZ2bXQ3ZmRqaiJ9.usAuyqVA4cunrGMkHdo9bg';
+// Use/Setup API Key file in apiKeys.js
 const onConnectKey = apiConfig.onConnectKey;
 const theMovieDBKey = apiConfig.theMovieDBKey;
 const omdbKey = apiConfig.omdbKey;
