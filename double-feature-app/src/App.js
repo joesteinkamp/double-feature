@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Async from 'react-promise';
 import './App.css';
-import apiConfig from './apiKeys';
+import apiConfig from './apiKeys.json';
 
 // Use/Setup API Key file in apiKeys.js
 const onConnectKey = apiConfig.onConnectKey;
@@ -18,7 +18,7 @@ class App extends Component {
 
     this.state = {
       dataLoaded: false,
-      showTimeDate: '2019-02-01',
+      showTimeDate: '1990-03-03',
       zipCode: '',
       timeBufferMin: 5,
       timeBufferMax: 30,
@@ -109,13 +109,13 @@ handleClickGetLocation() {
     // Check if zip exists
     if ( this.state.zipCode !== '' ) {
       // API Call (GraceNote Developer - OnConnect)
-      var requestURI = 'https://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&api_key=' + onConnectKey;
+      var requestURI = 'https://data.tmsapi.com/v1.1/movies/showings?startDate=' +  this.state.showTimeDate + '&zip=' + this.state.zipCode + '&imageSize=Lg&radius=40&api_key=' + onConnectKey;
 
       fetch(requestURI)
         .then(response=>response.json())
         .then(json=>{
-          console.log('API response');
-          console.log(json);
+          //console.log('API response');
+          //console.log(json);
           this.setState({
             data: json,
             dataLoaded: true
@@ -192,7 +192,7 @@ handleClickGetLocation() {
       app = <LocationForm showTimeDate={this.state.showTimeDate} zipCode={this.state.zipCode} timeBufferMin={this.state.timeBufferMin} timeBufferMax={this.state.timeBufferMax} onClick={() => this.handleClickGrabData()} onChangeDate={(i) => this.handleChangeDate(i)} onChangeZIP={(i) => this.handleChangeZIP(i)} onChangeTimeBufferMin={(i) => this.handleChangeTimeBufferMin(i)} onChangeTimeBufferMax={(i) => this.handleChangeTimeBufferMax(i)} onClickGeo={(i) => this.handleClickGetLocation(i)} />
     }
     else if (this.state.theaterSelected === false ) {
-      app = <TheaterList data={this.state.data} onClick={(i) => this.handleClickedTheater(i)} />
+      app = <TheaterList zipCode={this.state.zipCode} data={this.state.data} onClick={(i) => this.handleClickedTheater(i)} />
     }
     else if (this.state.movieSelected === false ) {
       app = <MoviesList data={this.state.data} selectedTheater={this.state.theaterID} onClick={(i) => this.handleClickedMovie(i)} />
@@ -323,7 +323,7 @@ class TheaterList extends Component {
     return (
       <div className="theater-list">
         {theaterObjs.map((theater, index) => 
-          <TheaterListItem theaterName={theater.name} key={theater.id} theaterID={theater.id} onClick={(i) => this.props.onClick(i)} />
+          <TheaterListItem theaterName={theater.name} key={theater.id} theaterID={theater.id} zipCode={this.props.zipCode} onClick={(i) => this.props.onClick(i)} />
         )}
       </div>
     );
@@ -332,7 +332,7 @@ class TheaterList extends Component {
 
   class TheaterListItem extends Component {
     render () {
-      var mapImg = geocodeLocation(this.props.theaterName);
+      var mapImg = geocodeLocation(this.props.theaterName, this.props.zipCode);
 
       return (
         <div className="theater-list-item" onClick={(i) => this.props.onClick(this.props.theaterID)}>
@@ -612,6 +612,8 @@ function from24to12(time) {
 function getPoster(name, releaseYear) {
   if (name.indexOf(' 3D') > -1 ) {
     name = remove3DFromName(name);
+  } else if (name.indexOf(': The IMAX 2D Experience') > -1 ) {
+    name = removeIMAX2DFromName(name);
   }
   console.log(name);
 
@@ -624,10 +626,10 @@ function getPoster(name, releaseYear) {
     .then(json=>{
       // Get OMDB Poster
       var movieImg;
-
+      
       // Get TheMovieDB Poster
       // Check if array is empty
-      if (json.results.length > 0) {
+      if (json.results.length > 0 && json.results[0].poster_path !== null) {
         movieImg = json.results[0].poster_path;
         movieImg = 'https://image.tmdb.org/t/p/w500' + movieImg;
       }
@@ -636,6 +638,8 @@ function getPoster(name, releaseYear) {
           return value;
         }); 
       }
+
+
 
       // Return image
       resolve(movieImg);
@@ -666,18 +670,27 @@ function getPosterOMDB(name, releaseYear) {
 }
 
 
+// Removes "3D" from title so can find poster on MovieDB
 function remove3DFromName(name) {
   name = name.replace(' 3D', '');
   return name;
 }
 
+function removeIMAX2DFromName(name) {
+  name = name.replace(': The IMAX 2D Experience', '');
+  return name;
+}
 
 
-
-function geocodeLocation(locationName) {
+function geocodeLocation(locationName, zipCode) {
+  // Setup Bounding Box for Mapbox
+  var bboxtest = setBoundingBoxFromZip(zipCode);
+  var bbox = '-91.380384%2C37.5598859%2C-89.3146794%2C39.6149642';
+  //console.log(zipCode);
+  //console.log(bbox);
 
   // Get Geocode of Location
-  var requestURI = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + locationName + '.json?access_token=' + mapBoxToken;
+  var requestURI = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + locationName + '.json?country=us&language=en&bbox=' + bbox + '&access_token=' + mapBoxToken;
 
   return new Promise(function(resolve, reject) {
     fetch(requestURI)
@@ -690,6 +703,68 @@ function geocodeLocation(locationName) {
 
       // Return geocode
       resolve(geocodeObj);
+    });
+  });
+}
+
+async function setBoundingBoxFromZip(zip) {
+  var baseBboxPromise = getBoundingBoxFromZip(zip);
+  var baseBbox = await baseBboxPromise;
+  
+  var minLong = baseBbox.minLong;
+  var minLat = baseBbox.minLat;
+  var maxLong = baseBbox.maxLong;
+  var maxLat = baseBbox.maxLat;
+
+  // Create wider bounding box
+  if ( minLong < 0) {
+    minLong = minLong + 1;
+    maxLong = maxLong - 1;
+  }
+  else {
+    minLong = minLong - 1;
+    maxLong = maxLong + 1;
+  }
+
+  if ( minLat < 0) {
+    minLat = minLat + 1;
+    maxLat = maxLat - 1;
+  }
+  else {
+    minLat = minLat - 1;
+    maxLat = maxLat + 1;
+  }
+
+  var modifiedBbox = minLong + '%2C' + minLat + '%2C' + maxLong + '%2C' + maxLat;
+
+  console.log(modifiedBbox);
+
+  return modifiedBbox;
+}
+
+function getBoundingBoxFromZip(zip) {
+  var requestURI = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + zip + '.json?country=us&language=en&access_token=' + mapBoxToken;
+
+  return new Promise(function(resolve, reject) {
+    fetch(requestURI)
+    .then(response=>response.json())
+    .then(json=>{
+      
+      var minLong = json.features[0].bbox[0];
+      var minLat = json.features[0].bbox[1];
+      var maxLong = json.features[0].bbox[2];
+      var maxLat = json.features[0].bbox[3];
+      
+      //console.log(minLong);
+      //console.log(minLat);
+      //console.log(maxLong);
+      //console.log(maxLat);
+
+      var bboxObj = { "minLong": minLong, "minLat": minLat, "maxLong": maxLong, "maxLat": maxLat };
+      //console.log(bboxObj);
+
+      // Return bbox
+      resolve(bboxObj);
     });
   });
 }
