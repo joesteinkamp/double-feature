@@ -521,10 +521,10 @@ class MatchList extends Component {
 
       return (
         <div className="match-list-item">
-          <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}
-            <a className="buy-tickets-link" href={firstMovieTicketUrl} target="_blank" rel="noopener noreferrer">Buy Tickets</a>
-          </div>
-          <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" alt={this.props.firstMovieName} src={val} />} />
+          <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}</div>
+          <a href={firstMovieTicketUrl} target="_blank" rel="noopener noreferrer">
+            <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" alt={this.props.firstMovieName} src={val} />} />
+          </a>
           <Async promise={secondMovieImg} then={(val) => <img className="second-match-image" alt={this.props.secondMovieName} src={val} />} />
         </div>
       );
