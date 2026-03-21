@@ -435,7 +435,7 @@ class MatchList extends Component {
           if (showtime.theatre.id === this.props.selectedTheater) {
             //console.log('Showtime at selected theater found.')
 
-            selectedMoviesTimes.push(showtime.dateTime);
+            selectedMoviesTimes.push({ dateTime: showtime.dateTime, ticketURI: showtime.ticketURI || '' });
           }
         });
       }
@@ -456,11 +456,11 @@ class MatchList extends Component {
             // Only at select theater
             if (showtime.theatre.id === this.props.selectedTheater) {
 
-              // Check if it's a match by comparing every 
-              selectedMoviesTimes.forEach((selectMovieTime, index) => {
-                var firstMovieTime = convertTimeToMinutes(selectMovieTime);
+              // Check if it's a match by comparing every
+              selectedMoviesTimes.forEach((selectMovieTimeObj, index) => {
+                var firstMovieTime = convertTimeToMinutes(selectMovieTimeObj.dateTime);
                 var secondMovieTime = convertTimeToMinutes(showtime.dateTime);
-                
+
 
                 var afterStartWindow = firstMovieTime + firstMovieRunTimeMins + this.props.timeBufferMin;
                 var afterEndWindow = firstMovieTime + firstMovieRunTimeMins + this.props.timeBufferMax;
@@ -474,14 +474,14 @@ class MatchList extends Component {
                   //console.log('Match found');
 
                   // Save match
-                  matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieReleaseYear: this.props.selectedMovieReleaseYear, firstMovieTime: selectMovieTime, firstMovieRunTime: this.props.selectedMovieRunTime, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieReleaseYear: secondMovie.releaseYear, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
+                  matchObj = { firstMovieID: this.props.selectedMovie, firstMovieName: this.props.selectedMovieName, firstMovieReleaseYear: this.props.selectedMovieReleaseYear, firstMovieTime: selectMovieTimeObj.dateTime, firstMovieRunTime: this.props.selectedMovieRunTime, firstMovieTicketURI: selectMovieTimeObj.ticketURI, secondMovieID: secondMovie.rootId, secondMovieName: secondMovie.title, secondMovieReleaseYear: secondMovie.releaseYear, secondMovieTime: showtime.dateTime, secondMovieRunTime: secondMovieRunTimeMins  };
                   matches.push(matchObj);
                 }
                 else if ( firstMovieTime >= beforeStartWindow && firstMovieTime <= beforeEndWindow ) {
                   //console.log('Match found');
-                  
+
                   // Save match
-                  matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieReleaseYear: secondMovie.releaseYear, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieReleaseYear: this.props.selectedMovieReleaseYear, secondMovieTime: selectMovieTime, secondMovieRunTime: this.props.selectedMovieRunTime };
+                  matchObj = { firstMovieID: secondMovie.rootId, firstMovieName: secondMovie.title, firstMovieReleaseYear: secondMovie.releaseYear, firstMovieTime: showtime.dateTime, firstMovieRunTime: secondMovieRunTimeMins, firstMovieTicketURI: showtime.ticketURI || '', secondMovieID: this.props.selectedMovie, secondMovieName: this.props.selectedMovieName, secondMovieReleaseYear: this.props.selectedMovieReleaseYear, secondMovieTime: selectMovieTimeObj.dateTime, secondMovieRunTime: this.props.selectedMovieRunTime };
                   matches.push(matchObj);
                 }
                 else {
@@ -501,7 +501,7 @@ class MatchList extends Component {
     return (
       <div className="match-list">
         {matches.map((match, index) => 
-            <MatchCard firstMovieID={match.firstMovieID} firstMovieName={match.firstMovieName} firstMovieReleaseYear={match.firstMovieReleaseYear} firstMovieTime={match.firstMovieTime} firstMovieRunTime={match.firstMovieRunTime} secondMovieID={match.secondMovieID} secondMovieName={match.secondMovieName} secondMovieReleaseYear={match.secondMovieReleaseYear} secondMovieTime={match.secondMovieTime} secondMovieRunTime={match.secondMovieRunTime} data={this.props.data}  />
+            <MatchCard firstMovieID={match.firstMovieID} firstMovieName={match.firstMovieName} firstMovieReleaseYear={match.firstMovieReleaseYear} firstMovieTime={match.firstMovieTime} firstMovieRunTime={match.firstMovieRunTime} firstMovieTicketURI={match.firstMovieTicketURI} secondMovieID={match.secondMovieID} secondMovieName={match.secondMovieName} secondMovieReleaseYear={match.secondMovieReleaseYear} secondMovieTime={match.secondMovieTime} secondMovieRunTime={match.secondMovieRunTime} data={this.props.data}  />
         )}
       </div>
     );
@@ -517,10 +517,14 @@ class MatchList extends Component {
       var firstMovieImg = getPoster(this.props.firstMovieName, this.props.firstMovieReleaseYear);
       var secondMovieImg = getPoster(this.props.secondMovieName, this.props.secondMovieReleaseYear);
 
+      var firstMovieTicketUrl = this.props.firstMovieTicketURI || 'https://www.google.com/search?q=' + encodeURIComponent(this.props.firstMovieName + ' tickets');
+
       return (
         <div className="match-list-item">
           <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}</div>
-          <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" alt={this.props.firstMovieName} src={val} />} />
+          <a href={firstMovieTicketUrl} target="_blank" rel="noopener noreferrer">
+            <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" alt={this.props.firstMovieName} src={val} />} />
+          </a>
           <Async promise={secondMovieImg} then={(val) => <img className="second-match-image" alt={this.props.secondMovieName} src={val} />} />
         </div>
       );
