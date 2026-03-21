@@ -144,6 +144,21 @@ body {
   width: 80px;
 }
 
+.buy-tickets-link {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 16px;
+  background-color: #4A90E2;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.buy-tickets-link:hover {
+  background-color: #3a7bd5;
+}
+
 
 /* CSS GRID */
 

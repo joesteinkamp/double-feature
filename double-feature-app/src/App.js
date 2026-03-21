@@ -517,9 +517,13 @@ class MatchList extends Component {
       var firstMovieImg = getPoster(this.props.firstMovieName, this.props.firstMovieReleaseYear);
       var secondMovieImg = getPoster(this.props.secondMovieName, this.props.secondMovieReleaseYear);
 
+      var firstMovieTicketUrl = 'https://www.fandango.com/search?q=' + encodeURIComponent(this.props.firstMovieName);
+
       return (
         <div className="match-list-item">
-          <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}</div>
+          <div className="image-overlay">{this.props.firstMovieName} @ {firstMovieTime} <br /> {this.props.secondMovieName} @ {secondMovieTime}
+            <a className="buy-tickets-link" href={firstMovieTicketUrl} target="_blank" rel="noopener noreferrer">Buy Tickets</a>
+          </div>
           <Async promise={firstMovieImg} then={(val) => <img className="first-match-image" alt={this.props.firstMovieName} src={val} />} />
           <Async promise={secondMovieImg} then={(val) => <img className="second-match-image" alt={this.props.secondMovieName} src={val} />} />
         </div>
