@@ -16,8 +16,6 @@ jobs:
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
             git pull origin main
-            # Add your build steps here, e.g.:
-            # npm install && npm run build
-            # pip install -r requirements.txt
-            # composer install
+            npm ci
+            npm run build
             sudo systemctl reload nginx
