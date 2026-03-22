@@ -1,21 +1,40 @@
 name: Deploy
+
 on:
   push:
     branches:
-      - main  # or master
+      - main
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            git pull origin main
-            npm ci
-            npm run build
-            sudo systemctl reload nginx
+          node-version: 18
+          cache: npm
+          cache-dependency-path: double-feature-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: double-feature-app
+        run: npm ci
+
+      - name: Build
+        working-directory: double-feature-app
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
+        run: npm run build
+
+      - name: Deploy to server
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete
+          path: double-feature-app/build/
+          remote_path: ${{ secrets.DEPLOY_PATH }}
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
