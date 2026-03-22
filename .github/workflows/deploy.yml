@@ -1,0 +1,23 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main  # or master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            git pull origin main
+            # Add your build steps here, e.g.:
+            # npm install && npm run build
+            # pip install -r requirements.txt
+            # composer install
+            sudo systemctl reload nginx
